@@ -417,6 +417,83 @@ module.exports = function () {
 另外一种是异步回调错误处理比如：`setTimeout` `process.nextTick` 等
 这样的错误 `try catch` 是无法捕获到的
 
+先看demo
+```
+const koa = require('koa')
+
+const app = new koa()
+app.listen(3001)
+console.log('[demo] koa start at port 3001')
+
+app.use((ctx)=>{
+  
+
+  try{
+     setTimeout(function(){;
+    ctx.body=str;
+  },100)
+  }catch(e){
+   console.log('catch', e)
+  }
+})
+app.on("error",(err,ctx)=>{
+   console.log(new Date(),":",err);
+});
+```
+
+运行结果node进程崩溃,  那如何捕获这种错误呢？
+答案采用 `process.on('uncaughtException', function (err) {})` node中的未知异常都会抛出`uncaughtException`事件
+
+改下demo
+
+```
+const koa = require('koa')
+
+const app = new koa()
+app.listen(3001)
+console.log('[demo] koa start at port 3001')
+
+app.use((ctx)=>{
+  
+
+  try{
+     setTimeout(function(){;
+    ctx.body=str;
+  },100)
+  }catch(e){
+   console.log('catch', e)
+  }
+  // ctx.throw(500);
+})
+app.on("error",(err,ctx)=>{
+   console.log(new Date(),":",err);
+});
+
+process.on('uncaughtException', function (err) {
+  console.error('uncaught e', err);
+});
+```
+
+此时虽然异常被捕获了，但是对用户来说体验并不好，用户还在转圈圈
+修改下事件监听
+```
+process.on('uncaughtException', function (err) {
+  console.error('uncaughtException', err);
+
+  server.on('request', (req, res) => {
+    console.log('拦截用户请求')
+    req.shouldKeepAlive = false;
+    res.shouldKeepAlive = false;
+    if (!res._header) {
+      res.setHeader('Connection', 'close');
+    }
+
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('server internal error');
+  })
+});
+```
+拦截用户请求，关闭长链接，并对用户返回500提示
 
 
 
