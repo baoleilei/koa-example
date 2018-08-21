@@ -498,6 +498,45 @@ process.on('uncaughtException', function (err) {
 
 
 ## 6. cookie
+
+cookie 主要作用是服务端向客户端存放数据
+cookie 属性
+* 客户端cookie属性: name, value, domain, path, expires, httpOnly, secure, sameSite
+* name      String  cookie key值
+* value     String  cookie 值
+* domain    String  域 表示cookie存放的位置, 服务端如果没有指定则存放为http请求域名, 服务端可以指定顶级域名
+* path      String  cookie路径 
+* expires   Date    cookie有效期, 是一个时间过来了这时间就失效, 一般服务端用maxAge/max-age设置, 如果服务器返回的cookie没有指定expires 那么cookie
+            的有效期是当前session 
+* httpOnly  Boolean 表示cookie只能用HTTP(S)传输, 客户端js是不允许修改的 
+* secure    Boolean 表示是HTTP模式还是HTTPS模式
+* sameSite  Boolean 表示cookie是否为严格模式 域名必须和访问域一致
+
+服务端发送cookie给客户端
+key:Set-Cookie. value: made_write_conn=1295214458; Path=/; Domain=.169it.com
+
+NodeJS: 
+```
+response.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+```
+
+客户端发送cookie到服务端
+
+同域情况下默认是带cookie，也可以删除cookie from header
+跨越默认是不带cookie的 如果希望跨越带cookie, 
+客户端 需要设置 credentials 
+服务端header:
+```
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Headers: Origin,X-Requested-With,Content-Type,Accept
+Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE
+Access-Control-Allow-Origin: http://domainname
+```
+关于客户端操作cookie， 客户端只能修改相同域并且httponly为false
+
+
 ## 7. session
+
 ## 8. body-parse
-## 9. DB-
+
+## 9. DB
